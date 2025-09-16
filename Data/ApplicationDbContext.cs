@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProductInventoryManagement.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace ProductInventoryManagement.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
