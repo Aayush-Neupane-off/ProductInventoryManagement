@@ -1,22 +1,119 @@
+/* Base font size */
 html {
-  font-size: 14px;
+    font-size: 14px;
+    height: 100%; /* Needed for sticky footer */
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+    html {
+        font-size: 16px;
+    }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
-}
-
+/* Ensure body fills viewport and works with sticky footer */
 body {
-  margin-bottom: 60px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa; /* Light background for modern look */
+}
+
+/* Main content grows to push footer down */
+main {
+    flex: 1;
+}
+
+/* Modern button focus styles */
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.15rem rgba(37, 140, 251, 0.5);
+    outline: none;
+}
+
+/* Navbar custom tweaks */
+.navbar {
+    transition: all 0.3s ease-in-out;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* Active link highlight */
+.navbar .nav-link.active {
+    color: #0d6efd !important;
+    border-bottom: 2px solid #0d6efd;
+}
+
+/* Hover effect for nav links */
+.navbar .nav-link {
+    transition: color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+    .navbar .nav-link:hover {
+        color: #0a58ca !important;
+    }
+/* Hero Section */
+.hero {
+    min-height: 70vh; /* takes most of the screen */
+    background: linear-gradient(135deg, #e9f2ff, #ffffff);
+    padding: 3rem 1rem;
+    border-radius: 0.5rem;
+}
+
+
+/* Footer styles */
+footer {
+    background-color: #ffffff;
+    border-top: 1px solid #dee2e6;
+}
+
+    footer a {
+        transition: color 0.2s ease-in-out;
+    }
+
+        footer a:hover {
+            color: #0d6efd !important;
+        }
+
+/* Table styles for inventory management */
+.table {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background-color: #fff;
+}
+
+    .table th {
+        background-color: #f1f3f5;
+        font-weight: 600;
+    }
+
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Form controls */
+.form-control, .form-select {
+    border-radius: 0.4rem;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 0.4rem;
+    transition: all 0.2s ease-in-out;
+}
+
+    .btn:hover {
+        transform: translateY(-1px);
+    }
+
+/* Shadow utility */
+.shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
 }

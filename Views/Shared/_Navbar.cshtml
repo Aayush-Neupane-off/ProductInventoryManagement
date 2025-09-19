@@ -1,31 +1,62 @@
-﻿<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+﻿@* Modern Navbar with icons and active highlighting *@
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    var currentPath = HttpContextAccessor.HttpContext?.Request.Path;
+    string IsActive(string controller, string action = "Index")
+    {
+        var path = $"/{controller}/{action}";
+        return currentPath?.StartsWithSegments($"/{controller}", StringComparison.OrdinalIgnoreCase) == true
+            ? "active fw-semibold"
+            : "";
+    }
+}
+
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm border-bottom">
     <div class="container">
-        <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">ProductInventoryManagement</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <a class="navbar-brand fw-bold text-primary" asp-area="" asp-controller="Home" asp-action="Index">
+            <i class="bi bi-box-seam-fill me-2"></i>ProductInventory
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
+
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link text-white" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                    <a class="nav-link @IsActive("Home")" asp-area="" asp-controller="Home" asp-action="Index">
+                        <i class="bi bi-house-door-fill me-1"></i> Home
+                    </a>
                 </li>
+
                 @if (User.Identity.IsAuthenticated)
                 {
                     <li class="nav-item">
-                        <a class="nav-link text-white" asp-area="" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                        <a class="nav-link @IsActive("Dashboard")" asp-area="" asp-controller="Dashboard" asp-action="Index">
+                            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" asp-area="" asp-controller="Products" asp-action="Index">Products</a>
+                        <a class="nav-link @IsActive("Products")" asp-area="" asp-controller="Products" asp-action="Index">
+                            <i class="bi bi-bag-check-fill me-1"></i> Products
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" asp-area="" asp-controller="Categories" asp-action="Index">Categories</a>
+                        <a class="nav-link @IsActive("Categories")" asp-area="" asp-controller="Categories" asp-action="Index">
+                            <i class="bi bi-tags-fill me-1"></i> Categories
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" asp-area="" asp-controller="Suppliers" asp-action="Index">Suppliers</a>
+                        <a class="nav-link @IsActive("Suppliers")" asp-area="" asp-controller="Suppliers" asp-action="Index">
+                            <i class="bi bi-truck me-1"></i> Suppliers
+                        </a>
                     </li>
                 }
             </ul>
-            <ul class="navbar-nav">
+
+            <ul class="navbar-nav ms-auto">
                 @await Html.PartialAsync("_LoginPartial")
             </ul>
         </div>
