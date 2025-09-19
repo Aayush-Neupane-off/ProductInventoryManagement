@@ -40,7 +40,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
+app.MapRazorPages();
 // Seed roles and a default admin user
 using (var scope = app.Services.CreateScope())
 {

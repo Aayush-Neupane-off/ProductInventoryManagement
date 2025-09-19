@@ -7,8 +7,8 @@ using ProductInventoryManagement.ViewModels;
 
 namespace ProductInventoryManagement.Controllers
 {
-    // Restrict access to authorized users
-    [Authorize]
+    // Only users in the "Admin" or "Manager" role can access the dashboard.
+    [Authorize(Roles = "Admin,Manager")]
     public class DashboardController : Controller
     {
         private readonly ApplicationDbContext _context;
