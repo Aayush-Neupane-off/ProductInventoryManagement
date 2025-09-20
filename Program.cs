@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ProductInventoryManagement.Data;
+using ProductInventoryManagement.Interfaces;
 using ProductInventoryManagement.Models;
+using ProductInventoryManagement.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +15,9 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 // Register the DbContext with the dependency injection container
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
+
+
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
 // Add Identity services to the container
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = false)

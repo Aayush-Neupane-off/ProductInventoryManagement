@@ -3,34 +3,30 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ProductInventoryManagement.Data;
+using ProductInventoryManagement.Interfaces;
 using ProductInventoryManagement.Models;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace ProductInventoryManagement.Controllers
 {
-    // Only users in the "Admin" role can access product management.
     [Authorize(Roles = "Admin")]
     public class ProductsController : Controller
     {
+        private readonly IProductRepository _productRepository;
         private readonly ApplicationDbContext _context;
 
-        public ProductsController(ApplicationDbContext context)
+        public ProductsController(IProductRepository productRepository, ApplicationDbContext context)
         {
+            _productRepository = productRepository;
             _context = context;
         }
 
         // GET: Products
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.Supplier)
-                .Include(p => p.Stock); 
-
-            return View(await applicationDbContext.ToListAsync());
+            var products = await _productRepository.GetAllAsync();
+            return View(products);
         }
 
         // GET: Products/Details/5
@@ -41,15 +37,11 @@ namespace ProductInventoryManagement.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.Supplier)
-                .FirstOrDefaultAsync(m => m.ProductId == id);
+            var product = await _productRepository.GetByIdAsync(id.Value);
             if (product == null)
             {
                 return NotFound();
             }
-
             return View(product);
         }
 
@@ -62,24 +54,21 @@ namespace ProductInventoryManagement.Controllers
         }
 
         // POST: Products/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ProductId,Name,Description,Price,CategoryId,SupplierId,Stock")] Product product)
         {
             if (ModelState.IsValid)
             {
-                // Add a new Stock object to the Product
                 product.Stock = new Stock { Quantity = product.Stock.Quantity };
-                _context.Add(product);
-                await _context.SaveChangesAsync();
+                await _productRepository.AddAsync(product);
                 return RedirectToAction(nameof(Index));
             }
             ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", product.CategoryId);
             ViewData["SupplierId"] = new SelectList(_context.Suppliers, "SupplierId", "Name", product.SupplierId);
             return View(product);
         }
+
         // GET: Products/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
@@ -88,7 +77,7 @@ namespace ProductInventoryManagement.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products.FindAsync(id);
+            var product = await _productRepository.GetByIdAsync(id.Value);
             if (product == null)
             {
                 return NotFound();
@@ -99,8 +88,6 @@ namespace ProductInventoryManagement.Controllers
         }
 
         // POST: Products/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ProductId,Name,Description,Price,CategoryId,SupplierId,Stock")] Product product)
@@ -114,24 +101,18 @@ namespace ProductInventoryManagement.Controllers
             {
                 try
                 {
-                    // Load the original product and its associated stock from the database
-                    var productToUpdate = await _context.Products
-                        .Include(p => p.Stock)
-                        .FirstOrDefaultAsync(p => p.ProductId == id);
-
+                    var productToUpdate = await _productRepository.GetByIdAsync(id);
                     if (productToUpdate == null)
                     {
                         return NotFound();
                     }
 
-                    // Update the properties of the loaded product with values from the form
                     productToUpdate.Name = product.Name;
                     productToUpdate.Description = product.Description;
                     productToUpdate.Price = product.Price;
                     productToUpdate.CategoryId = product.CategoryId;
                     productToUpdate.SupplierId = product.SupplierId;
 
-                    // Update the stock quantity
                     if (productToUpdate.Stock == null)
                     {
                         productToUpdate.Stock = new Stock { Quantity = product.Stock.Quantity };
@@ -141,13 +122,11 @@ namespace ProductInventoryManagement.Controllers
                         productToUpdate.Stock.Quantity = product.Stock.Quantity;
                     }
 
-                    // The DbContext is now tracking the correct object, so we can just save changes.
-                    _context.Update(productToUpdate);
-                    await _context.SaveChangesAsync();
+                    _productRepository.Update(productToUpdate);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ProductExists(product.ProductId))
+                    if (!await ProductExistsAsync(product.ProductId))
                     {
                         return NotFound();
                     }
@@ -171,10 +150,7 @@ namespace ProductInventoryManagement.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.Supplier)
-                .FirstOrDefaultAsync(m => m.ProductId == id);
+            var product = await _productRepository.GetByIdAsync(id.Value);
             if (product == null)
             {
                 return NotFound();
@@ -188,19 +164,17 @@ namespace ProductInventoryManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var product = await _context.Products.FindAsync(id);
+            var product = await _productRepository.GetByIdAsync(id);
             if (product != null)
             {
-                _context.Products.Remove(product);
+                _productRepository.Delete(product);
             }
-
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ProductExists(int id)
+        private async Task<bool> ProductExistsAsync(int id)
         {
-            return _context.Products.Any(e => e.ProductId == id);
+            return await _context.Products.AnyAsync(e => e.ProductId == id);
         }
     }
 }
