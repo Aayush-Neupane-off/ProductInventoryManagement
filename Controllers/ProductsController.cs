@@ -25,7 +25,11 @@ namespace ProductInventoryManagement.Controllers
         // GET: Products
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Products.Include(p => p.Category).Include(p => p.Supplier);
+            var applicationDbContext = _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Supplier)
+                .Include(p => p.Stock); 
+
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -62,10 +66,12 @@ namespace ProductInventoryManagement.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ProductId,Name,Description,Price,CategoryId,SupplierId")] Product product)
+        public async Task<IActionResult> Create([Bind("ProductId,Name,Description,Price,CategoryId,SupplierId,Stock")] Product product)
         {
             if (ModelState.IsValid)
             {
+                // Add a new Stock object to the Product
+                product.Stock = new Stock { Quantity = product.Stock.Quantity };
                 _context.Add(product);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -74,7 +80,6 @@ namespace ProductInventoryManagement.Controllers
             ViewData["SupplierId"] = new SelectList(_context.Suppliers, "SupplierId", "Name", product.SupplierId);
             return View(product);
         }
-
         // GET: Products/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
@@ -98,7 +103,7 @@ namespace ProductInventoryManagement.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ProductId,Name,Description,Price,CategoryId,SupplierId")] Product product)
+        public async Task<IActionResult> Edit(int id, [Bind("ProductId,Name,Description,Price,CategoryId,SupplierId,Stock")] Product product)
         {
             if (id != product.ProductId)
             {
@@ -109,7 +114,35 @@ namespace ProductInventoryManagement.Controllers
             {
                 try
                 {
-                    _context.Update(product);
+                    // Load the original product and its associated stock from the database
+                    var productToUpdate = await _context.Products
+                        .Include(p => p.Stock)
+                        .FirstOrDefaultAsync(p => p.ProductId == id);
+
+                    if (productToUpdate == null)
+                    {
+                        return NotFound();
+                    }
+
+                    // Update the properties of the loaded product with values from the form
+                    productToUpdate.Name = product.Name;
+                    productToUpdate.Description = product.Description;
+                    productToUpdate.Price = product.Price;
+                    productToUpdate.CategoryId = product.CategoryId;
+                    productToUpdate.SupplierId = product.SupplierId;
+
+                    // Update the stock quantity
+                    if (productToUpdate.Stock == null)
+                    {
+                        productToUpdate.Stock = new Stock { Quantity = product.Stock.Quantity };
+                    }
+                    else
+                    {
+                        productToUpdate.Stock.Quantity = product.Stock.Quantity;
+                    }
+
+                    // The DbContext is now tracking the correct object, so we can just save changes.
+                    _context.Update(productToUpdate);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
