@@ -1,31 +1,28 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ProductInventoryManagement.Data;
 using ProductInventoryManagement.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using ProductInventoryManagement.Interfaces;
 
 namespace ProductInventoryManagement.Controllers
 {
-    // Only users in the "Admin" role can access product management.
     [Authorize(Roles = "Admin")]
     public class SuppliersController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ISupplierRepository _supplierRepository;
 
-        public SuppliersController(ApplicationDbContext context)
+        public SuppliersController(ISupplierRepository supplierRepository)
         {
-            _context = context;
+            _supplierRepository = supplierRepository;
         }
 
         // GET: Suppliers
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Suppliers.ToListAsync());
+            return View(await _supplierRepository.GetAllAsync());
         }
 
         // GET: Suppliers/Details/5
@@ -36,8 +33,7 @@ namespace ProductInventoryManagement.Controllers
                 return NotFound();
             }
 
-            var supplier = await _context.Suppliers
-                .FirstOrDefaultAsync(m => m.SupplierId == id);
+            var supplier = await _supplierRepository.GetByIdAsync(id.Value);
             if (supplier == null)
             {
                 return NotFound();
@@ -53,16 +49,13 @@ namespace ProductInventoryManagement.Controllers
         }
 
         // POST: Suppliers/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("SupplierId,Name,ContactInfo")] Supplier supplier)
+        public async Task<IActionResult> Create([Bind("SupplierId,Name,ContactEmail,ContactPhone")] Supplier supplier)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(supplier);
-                await _context.SaveChangesAsync();
+                await _supplierRepository.AddAsync(supplier);
                 return RedirectToAction(nameof(Index));
             }
             return View(supplier);
@@ -76,7 +69,7 @@ namespace ProductInventoryManagement.Controllers
                 return NotFound();
             }
 
-            var supplier = await _context.Suppliers.FindAsync(id);
+            var supplier = await _supplierRepository.GetByIdAsync(id.Value);
             if (supplier == null)
             {
                 return NotFound();
@@ -85,11 +78,9 @@ namespace ProductInventoryManagement.Controllers
         }
 
         // POST: Suppliers/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("SupplierId,Name,ContactInfo")] Supplier supplier)
+        public async Task<IActionResult> Edit(int id, [Bind("SupplierId,Name,ContactEmail,ContactPhone")] Supplier supplier)
         {
             if (id != supplier.SupplierId)
             {
@@ -100,12 +91,11 @@ namespace ProductInventoryManagement.Controllers
             {
                 try
                 {
-                    _context.Update(supplier);
-                    await _context.SaveChangesAsync();
+                    _supplierRepository.Update(supplier);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!SupplierExists(supplier.SupplierId))
+                    if (!_supplierRepository.Exists(supplier.SupplierId))
                     {
                         return NotFound();
                     }
@@ -127,8 +117,7 @@ namespace ProductInventoryManagement.Controllers
                 return NotFound();
             }
 
-            var supplier = await _context.Suppliers
-                .FirstOrDefaultAsync(m => m.SupplierId == id);
+            var supplier = await _supplierRepository.GetByIdAsync(id.Value);
             if (supplier == null)
             {
                 return NotFound();
@@ -142,19 +131,12 @@ namespace ProductInventoryManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var supplier = await _context.Suppliers.FindAsync(id);
+            var supplier = await _supplierRepository.GetByIdAsync(id);
             if (supplier != null)
             {
-                _context.Suppliers.Remove(supplier);
+                _supplierRepository.Delete(supplier);
             }
-
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool SupplierExists(int id)
-        {
-            return _context.Suppliers.Any(e => e.SupplierId == id);
         }
     }
 }
