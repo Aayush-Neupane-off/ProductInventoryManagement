@@ -2,7 +2,8 @@
 html {
     font-size: 14px;
     position: relative;
-    min-height: 100%;
+    /* Ensure the html element itself doesn't cause overflow */
+    overflow-y: hidden;
 }
 
 @media (min-width: 768px) {
@@ -11,25 +12,29 @@ html {
     }
 }
 
-/* Body takes full height for sticky footer */
+/* Body takes full height and acts as the main flex container */
 body {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    height: 100vh; /* Use height instead of min-height to strictly fit to viewport */
     margin: 0;
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    overflow-y: hidden; /* This is crucial for preventing the scrollbar */
 }
 
 /* Main content grows to push footer down */
 main {
     flex: 1;
+    /* Allow the main content area to scroll if its content is too tall */
+    overflow-y: auto;
 }
 
 /* Footer styling */
 .footer {
-    background: #212529; /* Dark background */
+    background: #212529;
     color: #f8f9fa;
     font-size: 0.9rem;
+    flex-shrink: 0; /* Prevents footer from shrinking */
 }
 
     .footer a {
@@ -50,13 +55,19 @@ main {
     box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
-/* Hero section (Home Page) */
+/* Hero section full-screen */
 .hero {
-    background: linear-gradient(rgb(0, 0, 0, 1.00), rgb(255, 255, 255)), url('https://source.unsplash.com/1600x900/?inventory,warehouse,technology') no-repeat center center;
+    /* Use flexbox for the content inside the hero section */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: linear-gradient(rgb(7, 6, 7), rgb(26, 24, 26)), url('https://source.unsplash.com/1600x900/?inventory,warehouse,technology') no-repeat center center;
     background-size: cover;
     color: #fff;
-    text-align: center;
-    padding: 120px 20px;
+    padding: 20px;
+    flex-grow: 1; /* Allow the hero section to fill available space within the main content */
 }
 
     .hero h1 {
@@ -74,12 +85,19 @@ main {
         padding: 10px 25px;
         font-size: 1.1rem;
         border-radius: 30px;
+        transition: all 0.3s ease;
     }
+
+        .hero .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
 
 /* General spacing tweaks */
 .container {
     max-width: 1140px;
 }
+
 /* Feature card hover effect */
 .card {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -89,4 +107,3 @@ main {
         transform: translateY(-5px);
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
     }
-

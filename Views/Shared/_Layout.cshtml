@@ -13,23 +13,19 @@
         @await Html.PartialAsync("_Navbar")
     </header>
 
-    <!-- Page Content -->
-    <main role="main" class="flex-shrink-0">
+    <main role="main">
         @if (ViewData["Title"]?.ToString() == "Home Page")
         {
-            <!-- Home Page should be full-width -->
             @RenderBody()
         }
         else
         {
-            <!-- Other pages in a container -->
             <div class="container mt-4">
                 @RenderBody()
             </div>
         }
     </main>
 
-    <!-- Footer -->
     <footer class="footer mt-auto py-3 bg-dark text-light">
         <div class="container text-center">
             @await Html.PartialAsync("_Footer")
